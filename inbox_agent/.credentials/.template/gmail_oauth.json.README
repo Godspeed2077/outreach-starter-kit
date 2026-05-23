@@ -1,0 +1,14 @@
+Gmail OAuth client credentials cannot be shipped as a single placeholder template — you
+must download the actual JSON from Google Cloud Console.
+
+Steps:
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Create a new project (or use existing).
+3. Enable the Gmail API for the project.
+4. Create OAuth 2.0 Client ID credentials, application type: "Desktop app".
+5. Set redirect URI to http://localhost (the authorize flow needs this).
+6. Download the JSON file.
+7. Save it as `.credentials/gmail_oauth.json` (NOT inside the .template/ folder).
+8. Run `python gmail_client.py authorize` to generate `gmail_token.json`.
+
+The `gmail_oauth.json` file is sensitive (contains your client_secret). Keep it gitignored.

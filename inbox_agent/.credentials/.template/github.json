@@ -1,0 +1,3 @@
+{
+  "token": "<paste your classic Personal Access Token here; needs 'notifications' + 'public_repo' (or 'repo') scope>"
+}

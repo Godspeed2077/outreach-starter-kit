@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Runtime state (mutated by the inbox agent — don't commit user state back)
+inbox_agent/state.json
+inbox_agent/pending_drafts.json
+inbox_agent/action_log.jsonl
+
+# Per-user state file (lives outside the kit folder by default, but if the
+# operator puts one inside, don't commit it)
+validation_state.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor junk
+.vscode/
+.idea/
+*.swp
+*.swo

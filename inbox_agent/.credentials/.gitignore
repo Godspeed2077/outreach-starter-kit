@@ -1,0 +1,6 @@
+# Block everything in this folder from being committed,
+# EXCEPT the .gitignore itself and the .template/ reference shells.
+*
+!.gitignore
+!.template/
+!.template/**
