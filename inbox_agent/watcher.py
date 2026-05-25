@@ -13,7 +13,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 PENDING_PATH = HERE / "pending_drafts.json"
 ACTION_LOG_PATH = HERE / "action_log.jsonl"
 
-SUPPORTED_CHANNELS = ("gmail", "github", "devto")
+SUPPORTED_CHANNELS = ("gmail", "github", "devto", "manual")
 
 
 def _now_iso() -> str:
@@ -51,7 +51,20 @@ def _dispatch_send(draft: dict, body: str) -> dict:
         return _send_github(draft, body)
     if channel == "devto":
         return _send_devto(draft, body)
+    if channel == "manual":
+        return _send_manual(draft, body)
     raise RuntimeError("Unknown channel: " + channel)
+
+
+def _send_manual(draft: dict, body: str) -> dict:
+    """Tier 2: the operator already posted manually. This 'send' is log-only."""
+    p = draft.get("send_params", {})
+    return {
+        "ok": True,
+        "channel": "manual",
+        "destination_url": p.get("destination_url"),
+        "response": "operator_confirmed_manual_send",
+    }
 
 
 def _send_gmail(draft: dict, body: str) -> dict:

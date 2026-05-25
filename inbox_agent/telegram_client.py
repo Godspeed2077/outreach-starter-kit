@@ -213,6 +213,49 @@ def resolve_chat_id() -> int | None:
     return None
 
 
+
+def push_manual_send_request(
+    draft_id: str,
+    to_person: str,
+    destination_url: str,
+    draft_body: str,
+    notes: str = "",
+) -> int:
+    """Tier 2 queue-and-notify: push a draft that the operator must post manually.
+
+    The destination_url is where they should post (the candidate's HN thread, IH
+    forum, X DM page, etc). The body is the draft to copy-paste. The operator
+    submits manually, then taps Confirm Sent below to trigger logging.
+    """
+    creds = _load_creds()
+    chat_id = creds["chat_id"]
+    if chat_id is None:
+        raise RuntimeError("chat_id not resolved yet.")
+
+    note_block = f"\n\n<b>Notes:</b> {_escape(notes)}" if notes else ""
+    text_body = (
+        f"<b>Manual send needed: {to_person}</b>\n"
+        f"<b>Post here:</b> <code>{_escape(destination_url)}</code>\n\n"
+        f"<b>Draft body (copy-paste):</b>\n<pre>{_escape(draft_body)}</pre>"
+        + note_block
+        + "\n\nAfter you post, tap Confirm Sent to log it."
+    )
+
+    keyboard = {
+        "inline_keyboard": [[
+            {"text": "Confirm Sent", "callback_data": f"send:{draft_id}"},
+            {"text": "Skip", "callback_data": f"skip:{draft_id}"},
+        ]]
+    }
+    result = _api("sendMessage", body={
+        "chat_id": chat_id,
+        "text": text_body,
+        "parse_mode": "HTML",
+        "reply_markup": keyboard,
+    })
+    return result["message_id"]
+
+
 # ---------- CLI ----------
 
 def _cli() -> None:
