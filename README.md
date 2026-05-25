@@ -57,104 +57,33 @@ outreach_starter_kit/
 
 ## Setup
 
-### 1. Drop the skills into your Claude environment
+This is a paid subscription product. See [PRICING.md](PRICING.md) for pricing and onboarding.
 
-Copy the three skill folders from `skills/` to wherever your Claude environment loads skills:
+### 1. Subscribe
+Pay via the Stripe payment link in PRICING.md. After payment, send your GitHub username to randyrockwell05@gmail.com to receive a collaborator invitation.
 
-- Claude Code: `~/.claude/skills/`
-- Claude Desktop with Cowork (Windows): `%APPDATA%\Claude\skills\`
-- Other: check your environment's docs.
-
-After copying, restart Claude (or reload skills) so the three new skills appear in the available skills list.
-
-### 2. Create your state file
-
-Copy `state_file_template.md` to wherever you want your live state file to live. The conventional location:
-
-```
-<your outreach folder>/validation_state.md
-```
-
-Open it and fill in:
-- Your weekly schedule (which days are full-output vs partial).
-- Your "Material context" (the constraints that shape urgency — money, deadlines, life pressure).
-- Your "Voice & Style Rules" (your no-go phrases, preferred punctuation, opening patterns).
-- Your "Outreach Channel Discipline" (which channels pass your friction test).
-- Your "Runway context" (financial dimension — income, deadline if any).
-
-Leave the table and bullet sections empty; the skill writes to them.
-
-### 3. Create the kit config
-
-Create `outreach_kit_config.json` in your outreach folder:
-
-```json
-{
-  "state_file_path": "<absolute path to your validation_state.md>",
-  "signature": "<your name, used in state file headers>",
-  "operator_product_name": "<your product>",
-  "operator_product_url": "<your product URL>",
-  "operator_wedge_sentence": "<one sentence describing what you uniquely offer>",
-  "operator_proof_template": "<two-sentence canonical proof, using only verified facts>",
-  "operator_close_template": "<one-sentence soft ask, a real question not a CTA>",
-  "operator_persona_descriptor": "<short phrase describing your target>",
-  "allowed_claims": [
-    "<every verified fact you can repeat about your product, exactly as you'd say it>"
-  ],
-  "forbidden_claims_patterns": [
-    "<every category of claim you cannot substantiate — customer counts, retention, etc.>"
-  ],
-  "voice_rules": {
-    "no_em_dashes": true,
-    "lowercase_friendly": true,
-    "observation_first": true,
-    "additional_rules": []
-  },
-  "persona_label": "C",
-  "persona_description": "<one or two sentences describing who you're targeting>",
-  "persona_disqualifiers": [
-    "<red flag that disqualifies a candidate>"
-  ],
-  "commercial_intent_tiers": {
-    "tier_1": "<strongest commercial-intent signals>",
-    "tier_2": "<moderate signals>",
-    "tier_3": "<weakest signals>"
-  },
-  "reports_dir": "<path where verification reports should be written>"
-}
-```
-
-Both skills read this config at invocation time. The skills will ask you for missing fields before running, but it's faster to fill them all in upfront.
-
-### 4. Set the state file env var
-
-The inbox agent reads `OUTREACH_STATE_FILE` to find your state file:
-
+### 2. Clone the repo (after your invitation is accepted)
 ```bash
-# macOS / Linux — add to .bashrc / .zshrc
-export OUTREACH_STATE_FILE="<absolute path to validation_state.md>"
-
-# Windows — set permanently via System Properties → Environment Variables
-# or per-session in PowerShell:
-$env:OUTREACH_STATE_FILE = "<absolute path>"
+gh repo clone Godspeed2077/outreach-starter-kit ~/outreach-starter-kit
 ```
+Or use HTTPS clone with your GitHub credentials.
+
+### 3. Drop the skills into your Claude environment
+Copy `~/outreach-starter-kit/skills/*` to your Claude skills folder:
+- Claude Code: `~/.claude/skills/`
+- Claude Desktop with Cowork (Windows): `%APPDATA%/Claude/skills/`
+
+Reload Claude so the skills appear.
+
+### 4. Fill in your state file and kit config
+Copy `state_file_template.md` to wherever you want your live state file. Create `outreach_kit_config.json` in your outreach folder with your product details, allowed claims, voice rules, persona definition. See the rest of this README for the config schema.
 
 ### 5. Set up the inbox agent (optional but recommended)
+`pip install -r inbox_agent/requirements.txt`, fill in credentials for Telegram + any channels you use.
 
-If you want the hourly reply-detection loop, follow `inbox_agent/README.md` to:
+### 6. Wire the scheduled tasks
+Install the daily-priorities and outreach-inbox-agent SKILL.md files as scheduled tasks in your environment.
 
-- `pip install -r inbox_agent/requirements.txt`
-- Fill in `.credentials/` files for each channel you plan to use (Telegram is required; Gmail/GitHub/dev.to are per-channel optional).
-- Run the one-time OAuth flows.
-
-If you skip this, you'll still get the skills + state file + daily priorities task — just without auto-detection of incoming replies.
-
-### 6. Set up the scheduled tasks (optional)
-
-- `daily-priorities` — install the SKILL.md as a scheduled task with your preferred cadence (typically once per morning). The skill embeds your state inline; refresh the embedded state periodically (manually or via a script you write).
-- `outreach-inbox-agent` — install the SKILL.md as a scheduled task with your working-hours cadence (typically every 15-60 minutes from morning to evening).
-
-Both tasks assume your environment supports scheduled Claude invocations (Cowork's scheduling, cron + a Claude CLI wrapper, etc.).
 
 ## Daily flow once running
 
