@@ -1,21 +1,67 @@
-MIT License
+Outreach Starter Kit — Subscriber License
 
-Copyright (c) 2026 Randy Rockwell
+Copyright (c) 2026 Randy Rockwell. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and accompanying documentation (the "Kit") is proprietary
+and confidential. Access is granted only to current paid subscribers of
+the Outreach Starter Kit subscription product via the official Stripe
+distribution channel.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Permitted use by current subscribers
+------------------------------------
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+A current paid subscriber is granted a non-exclusive, non-transferable,
+revocable license to:
+
+  1. Use the Kit on their own machines or servers for their own outreach
+     operations.
+  2. Modify the Kit's code locally to suit their own needs.
+  3. Deploy the Kit privately within their own organization, provided that
+     no copy of the Kit is shared with non-subscribers.
+
+Prohibited at all times
+-----------------------
+
+Subscribers and non-subscribers alike are prohibited from:
+
+  1. Redistributing, sublicensing, publishing, or hosting the Kit's source
+     code or any substantial portion of it in any public or semi-public
+     location, including but not limited to public GitHub repositories,
+     code-sharing sites, package registries, or torrents.
+  2. Forking the Kit into a public repository.
+  3. Sharing access credentials, repository invites, or downloaded copies
+     of the Kit with non-subscribers.
+  4. Reselling the Kit, in original or modified form, as a standalone
+     product or as a major component of another product.
+  5. Reverse-engineering license enforcement or attempting to circumvent
+     subscription validation.
+
+Termination
+-----------
+
+This license terminates automatically and immediately upon cancellation,
+non-payment, or other termination of the subscriber's active subscription.
+Upon termination, the subscriber must delete all copies of the Kit in
+their possession.
+
+No warranty
+-----------
+
+THE KIT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY ARISING FROM USE OF THE KIT.
+
+No refunds
+----------
+
+Subscription payments are non-refundable. Once a subscriber has been
+granted access to the Kit, no portion of any payment may be refunded
+regardless of subscription duration or reason for cancellation.
+
+Contact
+-------
+
+For licensing questions or to report unauthorized distribution, contact:
+randyrockwell05@gmail.com
