@@ -5,16 +5,18 @@
     "email": "randyrockwell05@gmail.com"
   },
   "metadata": {
-    "description": "An outreach kit for solo founders that will not let you bluff. Three Claude skills, a state file template, and a multi-channel inbox agent.",
-    "version": "0.1.0"
+    "description": "An outreach kit for solo founders. End-to-end pipeline with a hallucination guardrail. Five Claude skills, state file template, multi-channel inbox agent. Paid subscription.",
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "outreach-starter-kit",
-      "description": "Verify candidates, draft messages with a bluff-prevention filter, and log every action through a deterministic Python script with preservation checks. Pairs with a canonical state file template and an optional multi-channel inbox agent.",
+      "description": "Five-skill outreach pipeline. The outreach-pipeline skill chains discover -> verify -> draft -> send -> log end-to-end. Individual skills are independently invocable.",
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/outreach-pipeline",
+        "./skills/persona-c-discover",
         "./skills/persona-c-verify",
         "./skills/persona-c-draft",
         "./skills/outreach-state-update"

@@ -1,59 +1,131 @@
 # Outreach Starter Kit
 
-An operator-grade kit for running a structured outreach sprint. Built and battle-tested by one solo founder doing validation outreach; generalized so any solo founder can drop it in.
+A self-hosted, end-to-end outreach pipeline for solo founders.
+
+Discovery -> verification -> drafting -> sending -> logging, all in one invocation. Built around Claude skills with a hallucination guardrail so drafts can't fabricate metrics. Paired with a Python inbox agent that watches Gmail, GitHub, and dev.to for replies.
+
+**Paid subscription product.** See [PRICING.md](PRICING.md) for terms.
+
+## How to use the pipeline
+
+The primary flow is the `outreach-pipeline` skill. One invocation processes candidates end-to-end:
+
+```
+You: "Run the pipeline on @jdoe from dev.to"
+
+Pipeline:
+  1. Verifies jdoe is real, alive, persona-fit.
+  2. Drafts a personalized message using verified specifics.
+  3. Runs the hallucination filter on the draft.
+  4. Sends via the channel's API (Tier 1) or queues to your phone (Tier 2).
+  5. Logs the send to your canonical state file.
+
+Output: status summary pushed to your Telegram.
+```
+
+Three input forms:
+
+- **Single candidate:** "Process @jdoe on dev.to."
+- **Discovery output file:** "Run the pipeline on outputs/persona-c-discovery-2026-05-24.md."
+- **Persona-derived query:** "Find and process 10 data-API founders this week." (The pipeline runs discovery internally first.)
+
+Flags:
+
+- `--dry-run` — produce drafts only. No sends. No logs. For first-run safety on a new config.
+- `--max N` — cap candidates processed in this run.
 
 ## What's in the box
 
-**Three Claude skills** that mediate every outreach action:
+**Five Claude skills** (the orchestrator plus four components):
 
-- `persona-c-verify` — verifies a candidate is real, alive, and a persona fit before you draft anything. Produces a one-page report with personalization specifics.
-- `persona-c-draft` — generates first-contact and chase messages following a four-move structural spine. Applies a bluff-prevention filter using your own allowed/forbidden claims. Never invents customer/volume/pricing data.
-- `outreach-state-update` — applies every change to your canonical state file through a deterministic Python script that does preservation checks before writing. Prevents the LLM-truncation failure mode that kills naive Edit-based state files.
+1. **`outreach-pipeline`** — the primary entry point. Chains the four components end-to-end with no per-step approval gates.
+2. **`persona-c-discover`** — searches HN/IH/dev.to/GitHub for candidates matching your persona. Outputs a list with verbatim hook snippets.
+3. **`persona-c-verify`** — checks a candidate is real, alive, persona-fit. Pulls personalization specifics.
+4. **`persona-c-draft`** — generates the outreach message. Hallucination filter built in.
+5. **`outreach-state-update`** — logs every send/reply/chase/close through a Python script with preservation checks.
 
-**A canonical state file template** (`state_file_template.md`) — your single source of truth. Append-only log, structured sections, machine-readable by the skills.
+**A canonical state file template** (`state_file_template.md`) — your single source of truth. Append-only, structured sections.
 
 **Two scheduled tasks:**
 
-- `daily-priorities` — runs each morning, computes your 3-7 highest-leverage outreach actions for the day, pushes them to your configured messaging surface.
-- `outreach-inbox-agent` — runs every tick during your working hours, polls Gmail/GitHub/dev.to for new replies, drafts responses, pushes them to you for one-tap approval.
+- `daily-priorities` — morning briefing of today's 3-7 highest-leverage actions.
+- `outreach-inbox-agent` — hourly poll of Gmail/GitHub/dev.to for new replies, drafts responses, pushes to Telegram for Send/Edit/Skip approval.
 
-**A Python inbox agent package** (`inbox_agent/`) — the engine behind the hourly task. Per-channel polling clients, OAuth-based send, Telegram-based approval handshake.
+**A Python inbox agent package** (`inbox_agent/`) — the engine behind the hourly task. Per-channel polling clients, OAuth-based send, Telegram approval handshake, queue-and-notify for non-API channels.
+
+## Drafts can't hallucinate
+
+The `persona-c-draft` skill runs every output through a configurable claims filter. You write your allowed claims (verified facts about your product) and forbidden patterns (categories you can't substantiate). The drafter scans each output. The first hallucinated metric flags the whole draft and proposes a fix using only allowed claims.
+
+This is the LLM's hallucination guardrail. Claude is the author of every draft and could fabricate metrics that sound plausible. The filter prevents that. Drafts only use facts you've verified.
+
+```
+=== BLUFF FILTER REPORT ===
+Status: FLAGGED
+
+Violation: "we've seen agents pay $X per query"
+
+Rules triggered:
+  - Forbidden phrase: "we've seen" (implies customer data you don't have)
+  - Fabricated price: $X is not in allowed_claims
+
+Proposed replacement (uses only allowed claims):
+  "[your verified price] - volume's still low, but the rails work"
+```
+
+The replacement is shorter and weaker-sounding than the bluff. That's the point.
+
+## Components — invoke individual skills directly
+
+The pipeline is the primary flow, but every skill is independently invocable if you want to run just one step.
+
+### `persona-c-discover`
+
+Triggers: "find candidates," "discover prospects," "mine the pool."
+Output: candidate list to `{reports_dir}/persona-c-discovery-{date}.md`, ready to feed into the pipeline or verify-by-hand.
+
+### `persona-c-verify`
+
+Triggers: "verify @jdoe," "check if this candidate is real," "is this post still live."
+Output: one-page verification report with persona fit, commercial intent tier, recommended channel, recommended hook angle.
+
+### `persona-c-draft`
+
+Triggers: "draft a send for X," "write a chase to Y," "personalize this message."
+Output: DRAFT MESSAGE + BLUFF FILTER REPORT + PRE-SEND CHECKLIST.
+
+### `outreach-state-update`
+
+Triggers: "log this send," "mark X as replied," "move Y to closed-loop," "add a pattern note about Z."
+Output: confirmation summary via deterministic Python script with preservation checks.
+
+## Channel send infrastructure
+
+Three tiers:
+
+**Tier 1 — API-programmatic (default for these channels):**
+- Gmail (OAuth send)
+- GitHub (issue/PR comments via PAT)
+- dev.to (comment API)
+
+**Tier 2 — Queue-and-notify (default for these channels):**
+- HN comments, IndieHackers comments/DMs, X DMs, site contact forms.
+- Pipeline pushes the draft + destination URL to Telegram with Confirm Sent / Skip buttons. You post manually, tap Confirm Sent, the state file logs automatically.
+
+**Tier 3 — Optional Playwright (advanced opt-in, not bundled by default):**
+- Headless browser automation for the Tier 2 channels. Requires cookie export from your authenticated session. ToS/breakage caveats apply. Available as a separate module documented in `inbox_agent/README.md`.
+
+**Reddit is excluded** from all tiers per the kit's channel discipline rules (banned domains, karma walls, AI content filter). If your Reddit account passes your own friction test, you can add a Reddit client yourself, but the kit doesn't ship with one.
 
 ## What this is not
 
-This is not a marketing automation tool. It does not blast messages. It does not "personalize at scale" by templating in someone's first name. Every send still requires a verified specific hook, structured drafting, and manual approval. The kit's value is discipline, not volume.
+This is not Apollo, ZoomInfo, Clay, or any other contact database. There is no cached list of contacts. Discovery runs against live public posts in real-time.
 
-## Folder structure
+It is not marketing automation. It does not blast. It does not "scale personalization" by templating someone's first name.
 
-```
-outreach_starter_kit/
-├── README.md                        (this file)
-├── LAUNCH_POST.md                   (the announce post)
-├── outreach_kit_config.json         (you create this — see Setup below)
-├── skills/
-│   ├── persona-c-verify/SKILL.md
-│   ├── persona-c-draft/SKILL.md
-│   └── outreach-state-update/
-│       ├── SKILL.md
-│       └── scripts/apply_event.py
-├── state_file_template.md           (starter for your validation_state.md)
-├── inbox_agent/                     (the Python package + runbook)
-│   ├── README.md                    (subsystem-specific README)
-│   ├── runbook.md
-│   ├── *.py
-│   ├── requirements.txt
-│   └── .credentials/.template/      (empty shells — fill in real files alongside)
-└── scheduled_tasks/
-    ├── daily-priorities/SKILL.md
-    └── outreach-inbox-agent/SKILL.md
-```
+If you're a solo founder running cold outreach to other founders or operators and you want institutional sales-motion discipline without the headcount, this is for you.
 
-## Prerequisites
-
-- A Claude account with skills enabled (Claude Code, Claude Desktop with Cowork, or any environment that loads SKILL.md files).
-- Python 3.10 or newer.
-- A messaging surface for the approval handshake. v1 supports Telegram out of the box; the architecture is built to accept other surfaces (see `inbox_agent/runbook.md` "Notifier-add checklist").
-- API credentials for whichever inbox-agent channels you plan to use (Gmail, GitHub, dev.to). You don't need all three — disable the ones you don't use by removing them from the runbook's Step 2.
+If you want to send 1000 emails a day to a scraped list, this kit will actively work against you.
 
 ## Setup
 
@@ -76,44 +148,60 @@ Copy `~/outreach-starter-kit/skills/*` to your Claude skills folder:
 Reload Claude so the skills appear.
 
 ### 4. Fill in your state file and kit config
-Copy `state_file_template.md` to wherever you want your live state file. Create `outreach_kit_config.json` in your outreach folder with your product details, allowed claims, voice rules, persona definition. See the rest of this README for the config schema.
+Copy `state_file_template.md` to wherever you want your live state file. Create `outreach_kit_config.json` in your outreach folder. Schema:
+
+```json
+{
+  "state_file_path": "<absolute path to your validation_state.md>",
+  "signature": "<your name, used in state file headers>",
+  "operator_product_name": "<your product>",
+  "operator_product_url": "<your product URL>",
+  "operator_wedge_sentence": "<what you uniquely offer>",
+  "operator_proof_template": "<two-sentence canonical proof, verified facts only>",
+  "operator_close_template": "<one-sentence soft ask>",
+  "operator_persona_descriptor": "<short phrase describing your target>",
+  "allowed_claims": ["<every verified fact about your product>"],
+  "forbidden_claims_patterns": ["<categories you cannot substantiate>"],
+  "voice_rules": {"no_em_dashes": true, "lowercase_friendly": true, "observation_first": true, "additional_rules": []},
+  "persona_label": "C",
+  "persona_description": "<who you target>",
+  "persona_disqualifiers": ["<red flags>"],
+  "commercial_intent_tiers": {"tier_1": "<strongest>", "tier_2": "<moderate>", "tier_3": "<weak>"},
+  "reports_dir": "<where reports go>",
+  "discovery_platforms": ["HN", "IH", "devto", "GitHub"]
+}
+```
 
 ### 5. Set up the inbox agent (optional but recommended)
-`pip install -r inbox_agent/requirements.txt`, fill in credentials for Telegram + any channels you use.
+`pip install -r inbox_agent/requirements.txt`, fill in credentials in `.credentials/` for Telegram + any channels you use.
 
 ### 6. Wire the scheduled tasks
-Install the daily-priorities and outreach-inbox-agent SKILL.md files as scheduled tasks in your environment.
+Install the `daily-priorities` and `outreach-inbox-agent` SKILL.md files as scheduled tasks in your environment.
 
+### 7. Set the state file env var
+```bash
+export OUTREACH_STATE_FILE="<absolute path to your validation_state.md>"
+```
+Make it permanent via your shell profile.
 
-## Daily flow once running
+## First-run safety
 
-1. Morning: daily-priorities task fires. You get a Telegram (or email/Slack) message with today's 3-7 outreach actions.
-2. Throughout the day: you draft outreach in a Claude session using `persona-c-verify` and `persona-c-draft`. Every send gets logged via `outreach-state-update`.
-3. Throughout the day: the inbox agent ticks. When someone replies, you get a Telegram message with the original reply + a drafted response + Send/Edit/Skip buttons. Tap Send and the reply goes out; tap Edit and you type the corrected version; tap Skip and nothing happens.
-4. End of week: open your state file, read the Pattern Notes section, write a new pattern note if you learned something. Decide what to keep doing, what to change.
+When you set up a fresh config, run the pipeline in `--dry-run` mode on the first 5-10 candidates. Pipeline produces all the drafts to a single file; nothing sends; nothing logs. Review the drafts. If they look right, re-run live. If they have problems, you found them at zero cost.
 
 ## What discipline this enforces
 
-- **One single source of truth.** Every action lives in `validation_state.md`. No scattered notes, no Trello, no "I'll remember." The state file is the operating system.
-- **No skill can write to the state file outside the script.** The script does preservation checks before every write. The file never loses content silently.
-- **No outreach without verification.** The draft skill asks for the verified specific detail before drafting. Generic openers are blocked at the input layer.
-- **No bluffing.** The draft skill applies a configurable allowed/forbidden claims filter to every output. One fabricated metric flags the whole draft.
-- **Channel friction is a hard filter.** Channels that require fighting platform rules (karma walls, AI-content bans, new-account gates) are dropped, not worked around.
-- **Voice consistency.** Voice rules live in the state file and are read by every drafting invocation. No drift across sessions.
-
-## Methodology references
-
-The kit's design is grounded in two patterns worth naming:
-
-- **State file as canonical operating system.** A markdown file with structured sections, mediated by skills that do preservation checks, used as the read/write substrate for a multi-week sprint. The pattern is general beyond outreach — it works anywhere you have a long-running structured process that needs to survive across sessions.
-- **Bluff-prevention as a non-negotiable filter.** The draft skill's allowed/forbidden claims architecture is the operator's only durable advantage in any outreach channel. Once a single claim doesn't survive a sanity check, the whole message is dead. The filter exists to protect that advantage.
+- Single source of truth: `validation_state.md`. Every action lives there.
+- No skill writes to the state file outside the deterministic Python script with preservation checks. The file never loses content silently.
+- No outreach without verification. The draft skill asks for a verified specific detail before drafting. Generic openers blocked at the input layer.
+- No hallucination. Drafts can only use facts you've verified. The bluff filter is non-negotiable.
+- Channel friction is a hard filter. Channels requiring karma climbs, AI-content bans, or banned-domain workarounds get dropped, not worked around.
 
 ## Support
 
-This kit ships as-is. The code is plain Python and plain markdown; read it, fork it, change it. Issues and PRs welcome on the repo (if you're reading from GitHub).
+This kit ships as-is. The code is plain Python and plain markdown; read it, fork it locally, change what you need (per the license, no public redistribution).
 
-If something breaks, the most likely culprit is a state-file structure drift — the `outreach-state-update` script depends on the section headers and table format in `state_file_template.md`. If you reshape the template, update the script's regexes to match.
+Issues + questions: randyrockwell05@gmail.com
 
 ## License
 
-MIT. See `LICENSE` file (if present) or assume MIT.
+See [LICENSE](LICENSE). Proprietary, subscriber-only. Use locally, modify locally, do not redistribute.
