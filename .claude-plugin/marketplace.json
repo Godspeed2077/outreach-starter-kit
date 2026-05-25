@@ -1,0 +1,24 @@
+{
+  "name": "outreach-starter-kit",
+  "owner": {
+    "name": "Randy Rockwell",
+    "email": "randyrockwell05@gmail.com"
+  },
+  "metadata": {
+    "description": "An outreach kit for solo founders that will not let you bluff. Three Claude skills, a state file template, and a multi-channel inbox agent.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "outreach-starter-kit",
+      "description": "Verify candidates, draft messages with a bluff-prevention filter, and log every action through a deterministic Python script with preservation checks. Pairs with a canonical state file template and an optional multi-channel inbox agent.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/persona-c-verify",
+        "./skills/persona-c-draft",
+        "./skills/outreach-state-update"
+      ]
+    }
+  ]
+}
